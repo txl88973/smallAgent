@@ -93,12 +93,12 @@ export const SkillPanel = ({ role }: { role: Role }) => {
 
                       {hasPermission ? (
                         skill.badge && (
-                          <span className="shrink-0 rounded bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                          <span className="shrink-0 rounded bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
                             {skill.badge}
                           </span>
                         )
                       ) : (
-                        <span className="shrink-0 rounded bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                        <span className="shrink-0 rounded bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
                           无权限
                         </span>
                       )}

@@ -25,6 +25,15 @@ pnpm install
 pnpm dev
 ```
 
+本地数据库（PostgreSQL + Prisma）：
+
+```bash
+docker compose up -d
+pnpm prisma:migrate
+pnpm prisma:seed
+pnpm prisma:studio
+```
+
 打开本地开发服务后，可以在聊天区测试订单查询和物流追踪，也可以在右侧调试台切换角色查看 Skill 权限展示。
 
 ## 技术栈

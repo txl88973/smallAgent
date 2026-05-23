@@ -44,6 +44,7 @@ export const RoleSelector = ({ role, onRoleChange }: RoleSelectorProps) => {
             <button
               key={item.value}
               type="button"
+              aria-pressed={isSelected}
               onClick={() => onRoleChange(item.value)}
               className={`rounded-md border px-3 py-2 text-left transition-colors ${
                 isSelected

@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: agenthub-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: agenthub
+    ports:
+      - "55434:5432"
+    volumes:
+      - agenthub-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  agenthub-postgres-data:

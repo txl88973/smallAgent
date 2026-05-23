@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Conversation {
+  id        String          @id @default(cuid())
+  title     String
+  role      String
+  messages  Message[]
+  traces    ToolCallTrace[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  content        String?
+  parts          Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+model SkillConfig {
+  id           String   @id @default(cuid())
+  skillId      String   @unique
+  name         String
+  enabled      Boolean  @default(true)
+  allowedRoles Json
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ToolCallTrace {
+  id             String        @id @default(cuid())
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  skillId        String
+  skillName      String
+  toolName       String
+  role           String
+  args           Json?
+  result         Json?
+  status         String
+  latencyMs      Int?
+  errorMessage   String?
+  createdAt      DateTime      @default(now())
+
+  @@index([conversationId])
+  @@index([skillId])
+}
+
+model Order {
+  id           String             @id @default(cuid())
+  orderNo      String             @unique
+  customerName String
+  status       String
+  amount       Decimal            @db.Decimal(10, 2)
+  paidAt       DateTime?
+  signedAt     DateTime?
+  createdAt    DateTime           @default(now())
+  tracking     Tracking?
+  tickets      AfterSalesTicket[]
+}
+
+model Tracking {
+  id            String   @id @default(cuid())
+  orderId       String   @unique
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  carrier       String
+  trackingNo    String
+  currentStatus String
+  steps         Json
+  updatedAt     DateTime @updatedAt
+}
+
+model AfterSalesTicket {
+  id            String   @id @default(cuid())
+  ticketNo      String   @unique
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  reason        String
+  priority      String
+  status        String
+  createdByRole String
+  createdAt     DateTime @default(now())
+
+  @@index([orderId])
+}

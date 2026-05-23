@@ -8,6 +8,7 @@ export type ToolCallRecord = {
   role: Role;
   status: "success" | "mock" | "denied";
   createdAt: string;
+  summary: string;
 };
 
 const toolCallRecords: ToolCallRecord[] = [
@@ -17,6 +18,7 @@ const toolCallRecords: ToolCallRecord[] = [
     role: "user",
     status: "success",
     createdAt: "2026-05-09 09:30",
+    summary: "query: where is my watch?",
   },
   {
     toolName: "viewTrackingInformation",
@@ -24,6 +26,7 @@ const toolCallRecords: ToolCallRecord[] = [
     role: "user",
     status: "success",
     createdAt: "2026-05-09 09:31",
+    summary: "orderId: 412093",
   },
   {
     toolName: "queryDeviceStatus",
@@ -31,6 +34,7 @@ const toolCallRecords: ToolCallRecord[] = [
     role: "admin",
     status: "mock",
     createdAt: "2026-05-09 09:35",
+    summary: "device group: demo fleet",
   },
   {
     toolName: "createWorkOrder",
@@ -38,17 +42,18 @@ const toolCallRecords: ToolCallRecord[] = [
     role: "user",
     status: "denied",
     createdAt: "2026-05-09 09:38",
+    summary: "permission check blocked user role",
   },
 ];
 
 const getStatusClassName = (status: ToolCallRecord["status"]) => {
   switch (status) {
     case "success":
-      return "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300";
+      return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:ring-emerald-900";
     case "mock":
-      return "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300";
+      return "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:ring-blue-900";
     case "denied":
-      return "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300";
+      return "bg-zinc-100 text-zinc-700 ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700";
   }
 };
 
@@ -64,49 +69,46 @@ export const ToolCallRecords = () => {
         </p>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead className="text-zinc-500 dark:text-zinc-400">
-            <tr className="border-b border-zinc-200 dark:border-zinc-800">
-              <th className="py-2 pr-3 font-medium">Tool</th>
-              <th className="py-2 pr-3 font-medium">Skill</th>
-              <th className="py-2 pr-3 font-medium">Role</th>
-              <th className="py-2 pr-3 font-medium">Status</th>
-              <th className="py-2 font-medium">Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {toolCallRecords.map((record) => (
-              <tr
-                key={`${record.toolName}-${record.createdAt}`}
-                className="border-b border-zinc-100 last:border-0 dark:border-zinc-800"
-              >
-                <td className="max-w-[120px] truncate py-2 pr-3 text-zinc-700 dark:text-zinc-300">
+      <ul
+        aria-label="Mock tool call records"
+        className="flex flex-col gap-2"
+      >
+        {toolCallRecords.map((record) => (
+          <li
+            key={`${record.toolName}-${record.createdAt}`}
+            className="min-w-0 rounded-md border border-zinc-200 p-3 dark:border-zinc-800"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="break-all text-sm font-medium text-zinc-900 dark:text-zinc-50">
                   {record.toolName}
-                </td>
-                <td className="py-2 pr-3 text-zinc-700 dark:text-zinc-300">
-                  {record.skillName}
-                </td>
-                <td className="py-2 pr-3 text-zinc-500 dark:text-zinc-400">
-                  {record.role}
-                </td>
-                <td className="py-2 pr-3">
-                  <span
-                    className={`rounded px-2 py-0.5 ${getStatusClassName(
-                      record.status,
-                    )}`}
-                  >
-                    {record.status}
-                  </span>
-                </td>
-                <td className="whitespace-nowrap py-2 text-zinc-500 dark:text-zinc-400">
+                </h3>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                   {record.createdAt}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </p>
+              </div>
+
+              <span
+                className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${getStatusClassName(
+                  record.status,
+                )}`}
+              >
+                {record.status}
+              </span>
+            </div>
+
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
+              <span>{record.skillName}</span>
+              <span aria-hidden="true">/</span>
+              <span>role: {record.role}</span>
+            </div>
+
+            <p className="mt-2 break-words text-xs leading-5 text-zinc-700 dark:text-zinc-300">
+              {record.summary}
+            </p>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 };
