@@ -9,6 +9,24 @@ import { ToolInvocation } from "ai";
 import { Orders } from "./orders";
 import { Tracker } from "./tracker";
 
+type TrackingResult = Parameters<typeof Tracker>[0]["trackingInformation"];
+
+const unwrapToolResult = (result: unknown) => {
+  if (
+    result &&
+    typeof result === "object" &&
+    "renderType" in result &&
+    "data" in result
+  ) {
+    return result as { renderType: string; data: unknown };
+  }
+
+  return {
+    renderType: undefined,
+    data: result,
+  };
+};
+
 export const TextStreamMessage = ({
   content,
 }: {
@@ -68,15 +86,26 @@ export const Message = ({
 
               if (state === "result") {
                 const { result } = toolInvocation;
+                const toolResult = unwrapToolResult(result);
 
                 return (
                   <div key={toolCallId}>
-                    {toolName === "listOrders" ? (
-                      <Orders orders={result} />
-                    ) : toolName === "viewTrackingInformation" ? (
+                    {toolResult.renderType === "order-list" ? (
+                      <Orders orders={toolResult.data as any[]} />
+                    ) : toolResult.renderType === "tracking-timeline" ? (
                       <div key={toolCallId}>
-                        <Tracker trackingInformation={result} />
+                        <Tracker
+                          trackingInformation={toolResult.data as TrackingResult}
+                        />
                       </div>
+                    ) : toolName === "listOrders" ? (
+                      <Orders orders={result as any[]} />
+                    ) : toolName === "viewTrackingInformation" ? (
+                      <Tracker trackingInformation={result} />
+                    ) : toolResult.renderType ? (
+                      <pre className="max-h-64 overflow-auto rounded-md bg-zinc-50 p-3 text-xs leading-5 text-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
+                        {JSON.stringify(toolResult.data, null, 2)}
+                      </pre>
                     ) : null}
                   </div>
                 );

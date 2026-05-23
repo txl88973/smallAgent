@@ -1,5 +1,6 @@
 import type { CoreTool } from "ai";
 
+import { executeWithTrace } from "./trace";
 import type { Role, SkillDefinition, ToolDefinition } from "./types";
 
 type VisibleTool = {
@@ -22,7 +23,7 @@ export function toAiSdkTools(
         description: tool.description,
         parameters: tool.parameters,
         execute: async (args) => {
-          return tool.execute(args, {
+          return executeWithTrace(tool, args, {
             role: context.role,
             conversationId: context.conversationId,
             skillId: skill.id,
