@@ -105,10 +105,10 @@ export const ToolCallRecords = ({
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-            Tool Call Records
+            Tool Trace
           </h2>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            最近真实工具调用
+            最近工具执行记录、参数和结果
           </p>
         </div>
 
@@ -135,7 +135,7 @@ export const ToolCallRecords = ({
           暂无工具调用记录
         </p>
       ) : (
-        <ul aria-label="Tool call records" className="flex flex-col gap-2">
+        <ul aria-label="Tool trace records" className="flex flex-col gap-2">
           {records.map((record) => (
             <li
               key={record.id}
