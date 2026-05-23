@@ -1,8 +1,27 @@
 "use client";
 
-import { TrackingInformation } from "./data";
 import { BoxIcon, GPSIcon, HomeIcon, InvoiceIcon } from "./icons";
 import { motion } from "framer-motion";
+
+type TrackingInformation = {
+  orderId?: string;
+  orderNo?: string;
+  progress?: string;
+  description?: string;
+  carrier?: string;
+  trackingNo?: string;
+  currentStatus?: string;
+  steps?: unknown[];
+};
+
+const isInTransit = (progress: string) =>
+  progress === "Out for Delivery" || progress === "运输中";
+
+const isWaiting = (progress: string) =>
+  progress === "Shipped" || progress === "待发货";
+
+const isDelivered = (progress: string) =>
+  progress === "Delivered" || progress === "已签收";
 
 const getColorFromProgress = ({
   progress,
@@ -15,9 +34,13 @@ const getColorFromProgress = ({
     case "Shipped":
       return type === "foreground" ? "#a1a1aa" : "#fafafa";
     case "Out for Delivery":
+    case "运输中":
       return type === "foreground" ? "#3b82f6" : "#eff6ff";
     case "Delivered":
+    case "已签收":
       return type === "foreground" ? "#10b981" : "#f0fdf4";
+    case "待发货":
+      return type === "foreground" ? "#f59e0b" : "#fffbeb";
     default:
       return type === "foreground" ? "#f4f4f5" : "#71717a";
   }
@@ -28,7 +51,14 @@ export const Tracker = ({
 }: {
   trackingInformation: TrackingInformation;
 }) => {
-  const { progress } = trackingInformation;
+  const progress =
+    trackingInformation.currentStatus ?? trackingInformation.progress ?? "未知";
+  const orderId = trackingInformation.orderNo ?? trackingInformation.orderId;
+  const description =
+    trackingInformation.description ??
+    [trackingInformation.carrier, trackingInformation.trackingNo]
+      .filter(Boolean)
+      .join(" · ");
 
   return (
     <div className="my-4 flex flex-col gap-6 md:max-w-[452px] max-w-[calc(100dvw-80px)] w-full justify-between">
@@ -41,7 +71,7 @@ export const Tracker = ({
         <div className="flex flex-row gap-2 items-center text-sm text-zinc-500 dark:text-zinc-400">
           <div>Tracking Order</div>
           <InvoiceIcon size={14} />
-          <div>{trackingInformation.orderId}</div>
+          <div>{orderId}</div>
         </div>
       </motion.div>
 
@@ -73,14 +103,13 @@ export const Tracker = ({
             className="h-2 rounded-lg z-10 absolute"
             initial={{ width: 0, background: "#f4f4f5" }}
             animate={{
-              width:
-                progress === "Delivered"
+              width: isDelivered(progress)
+                ? "100%"
+                : isInTransit(progress)
                   ? "100%"
-                  : progress === "Out for Delivery"
-                    ? "100%"
-                    : progress === "Shipped"
-                      ? "34%"
-                      : "0%",
+                  : isWaiting(progress)
+                    ? "34%"
+                    : "0%",
               background: getColorFromProgress({
                 progress,
                 type: "foreground",
@@ -94,20 +123,18 @@ export const Tracker = ({
           className="size-8 text-blue-50 rounded-full flex-shrink-0 flex flex-row justify-center items-center"
           initial={{ background: "#f4f4f5" }}
           animate={{
-            background:
-              progress === "Shipped"
-                ? "#f4f4f5"
-                : getColorFromProgress({
-                    progress,
-                    type: "foreground",
-                  }),
-            color:
-              progress === "Shipped"
-                ? "#71717a"
-                : getColorFromProgress({
-                    progress,
-                    type: "text",
-                  }),
+            background: isWaiting(progress)
+              ? "#f4f4f5"
+              : getColorFromProgress({
+                  progress,
+                  type: "foreground",
+                }),
+            color: isWaiting(progress)
+              ? "#71717a"
+              : getColorFromProgress({
+                  progress,
+                  type: "text",
+                }),
           }}
           transition={{ delay: 0.4 }}
         >
@@ -121,12 +148,11 @@ export const Tracker = ({
             className="h-2 rounded-lg z-10 absolute"
             initial={{ width: 0, background: "#f4f4f5" }}
             animate={{
-              width:
-                progress === "Delivered"
-                  ? "100%"
-                  : progress === "Out for Delivery"
-                    ? "71%"
-                    : "0%",
+              width: isDelivered(progress)
+                ? "100%"
+                : isInTransit(progress)
+                  ? "71%"
+                  : "0%",
               background: getColorFromProgress({
                 progress,
                 type: "foreground",
@@ -143,18 +169,20 @@ export const Tracker = ({
           }}
           transition={{ delay: 0.5 }}
           animate={{
-            background: ["Out for Delivery", "Shipped"].includes(progress)
-              ? "#f4f4f5"
-              : getColorFromProgress({
-                  progress,
-                  type: "foreground",
-                }),
-            color: ["Out for Delivery", "Shipped"].includes(progress)
-              ? "#71717a"
-              : getColorFromProgress({
-                  progress,
-                  type: "text",
-                }),
+            background:
+              isInTransit(progress) || isWaiting(progress)
+                ? "#f4f4f5"
+                : getColorFromProgress({
+                    progress,
+                    type: "foreground",
+                  }),
+            color:
+              isInTransit(progress) || isWaiting(progress)
+                ? "#71717a"
+                : getColorFromProgress({
+                    progress,
+                    type: "text",
+                  }),
           }}
         >
           <HomeIcon size={14} />
@@ -168,9 +196,11 @@ export const Tracker = ({
         transition={{ delay: 0.6 }}
       >
         <div className="text-sm">{progress}</div>
-        <div className="text-sm text-zinc-500 dark:text-zinc-400">
-          {trackingInformation.description}
-        </div>
+        {description && (
+          <div className="text-sm text-zinc-500 dark:text-zinc-400">
+            {description}
+          </div>
+        )}
       </motion.div>
     </div>
   );

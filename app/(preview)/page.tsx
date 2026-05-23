@@ -10,8 +10,10 @@ import { motion } from "framer-motion";
 import { useChat } from "ai/react";
 
 export default function Home() {
-  const { messages, handleSubmit, input, setInput, append } = useChat();
   const [role, setRole] = useState<Role>("user");
+  const { messages, handleSubmit, input, setInput, append } = useChat({
+    body: { role },
+  });
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [messagesContainerRef, messagesEndRef] =
@@ -29,7 +31,16 @@ export default function Home() {
       action: "what orders have shipped?",
     },
   ];
-  const availableTools = ["listOrders", "viewTrackingInformation"];
+  const availableTools =
+    role === "admin"
+      ? [
+          "listOrders",
+          "getOrderDetail",
+          "viewTrackingInformation",
+          "getRefundPolicy",
+          "createAfterSalesTicketDraft",
+        ]
+      : ["listOrders", "getOrderDetail", "viewTrackingInformation"];
 
   return (
     <div className="min-h-dvh bg-white dark:bg-zinc-900">
