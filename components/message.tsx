@@ -6,10 +6,8 @@ import { ReactNode } from "react";
 import { StreamableValue, useStreamableValue } from "ai/rsc";
 import { Streamdown } from "streamdown";
 import { ToolInvocation } from "ai";
-import { Orders } from "./orders";
-import { Tracker } from "./tracker";
-
-type TrackingResult = Parameters<typeof Tracker>[0]["trackingInformation"];
+import { ToolResultRenderer } from "./tool-results/ToolResultRenderer";
+import type { Role } from "./role-selector";
 
 const unwrapToolResult = (result: unknown) => {
   if (
@@ -57,10 +55,14 @@ export const Message = ({
   role,
   content,
   toolInvocations,
+  currentRole,
+  onToolResultConfirmed,
 }: {
   role: string;
   content: string | ReactNode;
   toolInvocations: Array<ToolInvocation> | undefined;
+  currentRole: Role;
+  onToolResultConfirmed?: () => void;
 }) => {
   return (
     <motion.div
@@ -87,25 +89,23 @@ export const Message = ({
               if (state === "result") {
                 const { result } = toolInvocation;
                 const toolResult = unwrapToolResult(result);
+                const renderType =
+                  toolResult.renderType ??
+                  (toolName === "listOrders"
+                    ? "order-list"
+                    : toolName === "viewTrackingInformation"
+                      ? "tracking-timeline"
+                      : undefined);
 
                 return (
                   <div key={toolCallId}>
-                    {toolResult.renderType === "order-list" ? (
-                      <Orders orders={toolResult.data as any[]} />
-                    ) : toolResult.renderType === "tracking-timeline" ? (
-                      <div key={toolCallId}>
-                        <Tracker
-                          trackingInformation={toolResult.data as TrackingResult}
-                        />
-                      </div>
-                    ) : toolName === "listOrders" ? (
-                      <Orders orders={result as any[]} />
-                    ) : toolName === "viewTrackingInformation" ? (
-                      <Tracker trackingInformation={result} />
-                    ) : toolResult.renderType ? (
-                      <pre className="max-h-64 overflow-auto rounded-md bg-zinc-50 p-3 text-xs leading-5 text-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
-                        {JSON.stringify(toolResult.data, null, 2)}
-                      </pre>
+                    {renderType ? (
+                      <ToolResultRenderer
+                        renderType={renderType}
+                        data={toolResult.data}
+                        role={currentRole}
+                        onConfirmed={onToolResultConfirmed}
+                      />
                     ) : null}
                   </div>
                 );

@@ -11,6 +11,7 @@ import { useChat } from "ai/react";
 
 export default function Home() {
   const [role, setRole] = useState<Role>("user");
+  const [toolTraceRefreshKey, setToolTraceRefreshKey] = useState(0);
   const { messages, handleSubmit, input, setInput, append } = useChat({
     body: { role },
   });
@@ -143,6 +144,10 @@ export default function Home() {
                 role={message.role}
                 content={message.content}
                 toolInvocations={message.toolInvocations}
+                currentRole={role}
+                onToolResultConfirmed={() => {
+                  setToolTraceRefreshKey((key) => key + 1);
+                }}
               ></Message>
             ))}
             <div ref={messagesEndRef} />
@@ -174,7 +179,7 @@ export default function Home() {
           <div className="flex flex-col gap-4">
             <RoleSelector role={role} onRoleChange={setRole} />
             <SkillPanel role={role} />
-            <ToolCallRecords />
+            <ToolCallRecords refreshKey={toolTraceRefreshKey} />
           </div>
         </aside>
       </div>

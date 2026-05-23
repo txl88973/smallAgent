@@ -62,8 +62,10 @@ const formatJson = (value: unknown) => {
 
 export const ToolCallRecords = ({
   conversationId,
+  refreshKey,
 }: {
   conversationId?: string;
+  refreshKey?: number;
 }) => {
   const [records, setRecords] = useState<ToolTraceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -96,7 +98,7 @@ export const ToolCallRecords = ({
 
   useEffect(() => {
     void loadRecords();
-  }, [loadRecords]);
+  }, [loadRecords, refreshKey]);
 
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
