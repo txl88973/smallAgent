@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 import prisma from "../lib/prisma";
 
@@ -119,7 +120,37 @@ const skillConfigs = [
   },
 ];
 
+const users = [
+  {
+    username: "admin",
+    password: "admin123",
+    role: "admin",
+  },
+  {
+    username: "user",
+    password: "user123",
+    role: "user",
+  },
+];
+
 async function main() {
+  for (const user of users) {
+    const passwordHash = await bcrypt.hash(user.password, 10);
+
+    await prisma.user.upsert({
+      where: { username: user.username },
+      update: {
+        passwordHash,
+        role: user.role,
+      },
+      create: {
+        username: user.username,
+        passwordHash,
+        role: user.role,
+      },
+    });
+  }
+
   for (const orderSeed of orders) {
     const order = await prisma.order.upsert({
       where: { orderNo: orderSeed.orderNo },

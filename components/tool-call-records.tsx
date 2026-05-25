@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { apiClient } from "@/lib/api/client";
 import type { Role } from "./role-selector";
 
 type ToolTraceRecord = {
@@ -82,13 +83,11 @@ export const ToolCallRecords = ({
         url.searchParams.set("conversationId", conversationId);
       }
 
-      const response = await fetch(url);
+      const response = await apiClient.get<ToolTraceRecord[]>(
+        `${url.pathname}${url.search}`,
+      );
 
-      if (!response.ok) {
-        throw new Error("工具调用记录加载失败");
-      }
-
-      setRecords((await response.json()) as ToolTraceRecord[]);
+      setRecords(response.data);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : String(error));
     } finally {

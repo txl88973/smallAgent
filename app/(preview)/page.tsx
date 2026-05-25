@@ -1,19 +1,37 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Message } from "@/components/message";
-import { RoleSelector, type Role } from "@/components/role-selector";
 import { SkillPanel } from "@/components/skill-panel";
 import { ToolCallRecords } from "@/components/tool-call-records";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
+import { refreshClient, authFetch } from "@/lib/api/client";
+import { useAuthStore } from "@/lib/auth/auth-store";
 import { motion } from "framer-motion";
 import { useChat } from "ai/react";
 
 export default function Home() {
-  const [role, setRole] = useState<Role>("user");
+  return (
+    <RequireAuth>
+      <HomeContent />
+    </RequireAuth>
+  );
+}
+
+function HomeContent() {
+  const router = useRouter();
+  const { user, accessToken, clearAuth } = useAuthStore();
   const [toolTraceRefreshKey, setToolTraceRefreshKey] = useState(0);
   const { messages, handleSubmit, input, setInput, append } = useChat({
-    body: { role },
+    fetch: authFetch,
+    credentials: "same-origin",
+    headers: accessToken
+      ? {
+          Authorization: `Bearer ${accessToken}`,
+        }
+      : undefined,
   });
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -32,8 +50,9 @@ export default function Home() {
       action: "what orders have shipped?",
     },
   ];
+  const currentRole = user?.role ?? "user";
   const availableTools =
-    role === "admin"
+    currentRole === "admin"
       ? [
           "listOrders",
           "getOrderDetail",
@@ -42,6 +61,12 @@ export default function Home() {
           "createAfterSalesTicketDraft",
         ]
       : ["listOrders", "getOrderDetail", "viewTrackingInformation"];
+
+  const handleLogout = async () => {
+    await refreshClient.post("/api/auth/logout").catch(() => null);
+    clearAuth();
+    router.replace("/login");
+  };
 
   return (
     <div className="min-h-dvh bg-white dark:bg-zinc-900">
@@ -83,10 +108,10 @@ export default function Home() {
                         Current role
                       </p>
                       <p className="mt-1 font-medium text-zinc-950 dark:text-zinc-50">
-                        {role}
+                        {user?.username ?? "-"}
                       </p>
                       <p className="mt-1 text-xs leading-5 text-zinc-600 dark:text-zinc-300">
-                        右侧面板可切换角色并查看 Skill 权限。
+                        role: {currentRole}
                       </p>
                     </div>
 
@@ -144,7 +169,7 @@ export default function Home() {
                 role={message.role}
                 content={message.content}
                 toolInvocations={message.toolInvocations}
-                currentRole={role}
+                currentRole={currentRole}
                 onToolResultConfirmed={() => {
                   setToolTraceRefreshKey((key) => key + 1);
                 }}
@@ -177,8 +202,34 @@ export default function Home() {
 
         <aside className="border-t border-zinc-200 p-4 dark:border-zinc-800 lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0">
           <div className="flex flex-col gap-4">
-            <RoleSelector role={role} onRoleChange={setRole} />
-            <SkillPanel role={role} />
+            <section className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+              <div>
+                <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                  Current User
+                </h2>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  登录态决定可用 Skill / Tool
+                </p>
+              </div>
+              <div className="rounded-md border border-zinc-200 p-3 dark:border-zinc-800">
+                <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                  {user?.username}
+                </p>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  role: {currentRole}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleLogout();
+                }}
+                className="h-9 rounded-md border border-zinc-200 px-3 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              >
+                Logout
+              </button>
+            </section>
+            <SkillPanel role={currentRole} />
             <ToolCallRecords refreshKey={toolTraceRefreshKey} />
           </div>
         </aside>

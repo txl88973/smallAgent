@@ -95,3 +95,26 @@ model AfterSalesTicket {
 
   @@index([orderId])
 }
+
+model User {
+  id            String         @id @default(cuid())
+  username      String         @unique
+  passwordHash  String
+  role          String
+  refreshTokens RefreshToken[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+}

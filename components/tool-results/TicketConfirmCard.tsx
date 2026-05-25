@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { apiClient } from "@/lib/api/client";
 import type { Role } from "../role-selector";
 import { priorityLabel } from "./utils";
 import { TicketResult, TicketResultCard } from "./TicketResultCard";
@@ -57,27 +58,20 @@ export function TicketConfirmCard({
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/after-sales/confirm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const response = await apiClient.post("/api/after-sales/confirm", {
           orderNo: draft.orderNo,
           reason: draft.reason,
           priority: draft.priority,
-          role,
-        }),
+          requestedRole: role,
       });
 
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload?.error ?? "售后工单创建失败");
-      }
-
-      setResult(payload as TicketResult);
+      setResult(response.data as TicketResult);
       onConfirmed?.();
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : String(error));
+    } catch (error: any) {
+      setErrorMessage(
+        error?.response?.data?.error ??
+          (error instanceof Error ? error.message : String(error)),
+      );
     } finally {
       setIsConfirming(false);
     }

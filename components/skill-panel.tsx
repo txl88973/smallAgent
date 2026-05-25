@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { apiClient } from "@/lib/api/client";
 import type { Role } from "./role-selector";
 
 type SkillPanelTool = {
@@ -63,13 +64,8 @@ export const SkillPanel = ({ role }: { role: Role }) => {
       setErrorMessage(null);
 
       try {
-        const response = await fetch(`/api/skills?role=${role}`);
-
-        if (!response.ok) {
-          throw new Error("Skill 数据加载失败");
-        }
-
-        const data = (await response.json()) as SkillPanelItem[];
+        const response = await apiClient.get<SkillPanelItem[]>("/api/skills");
+        const data = response.data;
 
         if (isActive) {
           setSkills(data);
